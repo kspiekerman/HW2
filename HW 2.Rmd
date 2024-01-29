@@ -1,0 +1,239 @@
+---
+title: "HW 2"
+author: "Kate Spiekerman"
+output:
+  html_document: default
+  pdf_document: default
+  word_document: default
+---
+
+```{r global_options, echo=FALSE}
+knitr::opts_chunk$set(fig.height=4, fig.width=5, warning=FALSE, tidy=TRUE, tidy.opts=list(width.cutoff=60))
+```
+
+```{r, echo=FALSE, message=FALSE}
+
+profs <- read.csv('profs.csv')
+library(ggplot2)
+library(tidyverse)
+
+```
+
+
+## **Question 1**
+
+**Part A**
+
+```{r, echo=FALSE}
+hist(profs$eval, ylim= c(0,70), breaks = 20, col='#43a2ca', main='Distribution of Course Evaluation Scores', xlab = 'Evaluation Score (out of 5)')
+```
+
+This graph shows the distribution of professors and the University of Texas- Austin and their evaluation rating, out of 5, given by students. The data is centered around 4, and is skewed left. 
+
+
+**Part B**
+
+```{r, echo=FALSE}
+boxplot(profs$eval~profs$native, main='Distribution of Evaluation Scores (out of 5)',ylab='Evaluation Score',xlab='Native Speaker',names=c('No','Yes'),col=c('#a8ddb5','#43a2ca'))
+```
+
+Professors who are native speakers have, on average, a higher rating than professors who are not native speakers.
+
+
+**Part C**
+
+```{r, echo=FALSE}
+ggplot(profs) +
+  geom_histogram(aes(x=eval), col='black', fill= '#43a2ca') +
+  labs(title='Evaluation by Gender', x='Evaluation Score',y='Gender') +
+  theme_classic() +
+  facet_wrap(~gender)
+
+```
+
+The evaluations of male professors are, on average, slightly higher than female professors. 
+
+
+**Part D**
+
+```{r, echo=FALSE}
+plot(profs$beauty,profs$eval, ylab= 'Evaluation Score', xlab='Beauty Rating', main= 'Relationship between Beauty and Evaluation', pch=19)
+
+cor(profs$beauty,profs$eval)
+```
+
+There is a weak positive linear relationship between evaluation score and beauty rating for professors at the University of Texas. 
+
+## **Question 2**
+
+**Part A**
+
+```{r, echo=FALSE}
+bike <- read.csv('bikeshare.csv')
+
+bikes <- bike %>%
+  group_by(hr) %>%
+  summarize(average = mean(total))
+
+ggplot(bikes) +
+  geom_line(aes(x= hr, y= average)) +
+  labs(title= 'Average Bike Rentals Each Hour', x= 'Hour of the Day', y= 'Average Bike Rentals') +
+  theme_classic()
+```
+
+The number of bike rentals is increasing in the early hours of the day and has a peak around hour 8, and then starts decreasing. It had its second peak around hour 17, and then decreases the rest of the day.
+
+
+**Part B**
+
+```{r, echo=FALSE}
+bike_workday <- bike %>%
+  group_by(hr, workingday) %>%
+  summarize(average = mean(total))
+
+ggplot(bike_workday) +
+  geom_line(aes(hr, y=average)) +
+  labs(title= 'Average Bike Rentals Each Hour', x= 'Hour of the Day', y= 'Average Bike Rentals') +
+  theme_classic() +
+  facet_wrap(~workingday)
+
+```
+
+On weekends and holidays, bike rentals decrease til hour 5, then they start increasing until they peak around hour 15, decreasing the rest of the day. On workdays, there are two dramatic peaks around hour 7 and hour 17. 
+
+**Part C**
+```{r, echo=FALSE}
+bike_nine = bike %>%
+  filter(hr == 9)
+
+bike_nine_weather <- bike_nine %>%
+  group_by(weathersit, workingday) %>%
+  summarize(average = mean(total))
+
+ggplot(bike_nine_weather) +
+  geom_col(aes(y=average, x=weathersit), col='black', fill='#43a2ca') +
+  labs(title= 'Average Bike Rentals by Weather', y= 'Average Bike Rentals', x= 'Weather') +
+  theme_classic() +
+  facet_wrap(~workingday)
+```
+
+On weekends and holidays, weather type 1 (Clear, Few clouds, Partly cloudy, Partly cloudy) had the highest bike rentals, then weather type 2 (Mist + Cloudy, Mist + Broken clouds, Mist + Few clouds, Mist), and weather type 3 (Light Snow, Light Rain + Thunderstorm + Scattered clouds, Light Rain + Scattered clouds) had the least amount of bike rentals. On workdays weather type 1 and 2 had about the same number of rentals, while type 3 had the least. 
+
+## **Question 3**
+
+```{r, echo=FALSE, message=FALSE}
+metro <- read.csv('capmetro_UT.csv')
+library(dbplyr)
+
+```
+
+**Part 1**
+```{r, echo=FALSE}
+cap_metro <- metro %>%
+  group_by(hour_of_day, day_of_week, month) %>%
+  mutate(mean_boarding = mean(boarding))
+
+ggplot(cap_metro) +
+  geom_line(aes(x=hour_of_day, y=mean_boarding, col= month))+
+  facet_wrap(~day_of_week)+
+  labs(x= 'hour', y= 'average boarding', title= 'Relationship Between Hour and Average Boarding, by Day of Week and Month')
+```
+
+
+The graph shows the average number of boardings on the UT-Austin bus service every day in November, October, and September. The graphs of weekdays are similar, peaking around hour 16. The average boarding is significantly lower on weekends, with neither Saturday nor Sunday have a recognizable peak. November had the lowest average boarding on Fridays, Thursdays, Tuesdays, and Wednesdays, while September had the lowest on Mondays. 
+
+
+
+**Part 2**
+```{r, echo=FALSE}
+metro_two <- metro %>%
+  mutate(weekend = 
+           ifelse(day_of_week == 'Sat' | day_of_week == 'Sun', 
+                  yes = 'weekend' , no = 'weekday'))
+ggplot(metro_two) +
+  geom_point(aes(x= temperature, y= boarding, color= weekend))+
+  facet_wrap(~hour_of_day)+
+  labs(x= 'temperature', y= 'boardings', title= 'Relationship Between Boarding, Temperature, by Hour and Type of Day')
+```
+
+These graphs show the relationship between the temperature and average number of boardings, separated by the hour of the day and weather it's a weekend or weekday. The variability of the data increases throughout the day. Additionally, there are more boardings on weekdays than weekends at every hour of the day. The data is relatively uniform, meaning that temperature doesn't have a significant affect on the average boardings.  
+
+
+
+## **Question 4**
+
+**Part A**
+```{r, echo=FALSE}
+billboard <- read.csv('billboard.csv')
+
+billboards <- billboard %>%
+  group_by(song, performer) %>%
+  mutate(charted = length(song))
+
+billboard_select <- billboards %>%
+  select(song, performer, charted)
+
+billboard_charts <- unique(billboard_select)
+
+billboard_charts %>%
+  arrange(desc(charted)) %>%
+  head(10)
+```
+
+This table shows the top 10 songs that were on the billboard top 100 for the longest period of time. The column title count, describes how many weeks the song charted. 
+
+
+**Part B**
+```{r, echo=FALSE}
+billboard_year <- billboards %>%
+  select(song, performer, year)
+
+billboard_years <- unique(billboard_year)
+
+billboard_data <- billboard_years %>%
+  group_by(year) %>%
+  mutate(diversity = length(year))
+
+billboard_diversitys <- billboard_data %>%
+  select(year, diversity)
+
+billboard_diversity <- unique(billboard_diversitys)
+
+billboard_unique <- billboard_diversity %>%
+  filter(year > 1958)
+
+billboard_final <- billboard_unique %>%
+  filter(year<2021)
+
+ggplot(billboard_final) +
+  geom_line(aes(year, y=diversity)) +
+  labs(title= 'Number of Charting Songs Overtime', x= 'Year', y= 'Number of Songs') +
+  theme_classic()
+  
+```
+
+This graph shows the number of songs that charted each year over time from 1959 to 2020. The graph is generally decreasing until about 2000, when it started increasing. There are two modes, one around 1965 and one around 2020. 
+
+
+**Part C**
+```{r, echo=FALSE}
+ten_weeks <- billboard_charts %>%
+  filter(charted >= 10)
+
+number_hits <- ten_weeks %>%
+  group_by(performer)%>%
+  summarise(hits = n_distinct(song))
+
+final_artists <- number_hits %>%
+  filter(hits >= 30)
+
+ggplot(final_artists)+
+  geom_col(aes(fct_reorder(performer, hits),hits), fill='#43a2ca')+
+  coord_flip()+
+  labs(title= 'Artists With 30 or More 10 Week Hits', x='artist', y='number of 10 week hits')
+
+```
+
+This graph shows artists that have had 30 or more songs that were on the Billboard top 100 for more than 10 weeks. Elton John has the most with 52. 
+
+
